@@ -15,7 +15,7 @@ app.post("/hooks/catch/:userId/:zapId", async(req, res) =>{
             data: {
                 zapId : zapId,
                 metadata : body
-            }
+             }
         });
 
         await tx.zapRunOutbox.create({

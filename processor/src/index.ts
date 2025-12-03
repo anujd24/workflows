@@ -20,7 +20,7 @@ async function main(){
         })
         producer.send({
             topic : TOPIC_NAME,
-            messages : pendingRows.map((r : any) => {
+            messages : pendingRows.map(r => {
                 return {
                     value : r.zapRunId
                 }
@@ -30,7 +30,7 @@ async function main(){
         await client.zapRunOutbox.deleteMany({
             where : {
                 id : {
-                    in : pendingRows.map((x:any)  => x.id)
+                    in : pendingRows.map(x  => x.id)
                 }
             }
         })

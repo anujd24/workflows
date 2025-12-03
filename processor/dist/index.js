@@ -28,7 +28,7 @@ function main() {
             });
             producer.send({
                 topic: TOPIC_NAME,
-                messages: pendingRows.map((r) => {
+                messages: pendingRows.map(r => {
                     return {
                         value: r.zapRunId
                     };
@@ -37,7 +37,7 @@ function main() {
             yield client.zapRunOutbox.deleteMany({
                 where: {
                     id: {
-                        in: pendingRows.map((x) => x.id)
+                        in: pendingRows.map(x => x.id)
                     }
                 }
             });

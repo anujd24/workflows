@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,60 +7,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id        Int   @id @default(autoincrement())
-  name      String
-  email     String
-  password  String
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String
+  password String
 }
 
 model Zap {
-  id          String    @id @default(uuid())
-  triggerId   String
-  trigger     Trigger?
-  actions     Action[]
-  zapRuns     zapRun[]
+  id        String   @id @default(uuid())
+  triggerId String
+  Action    Action[]
+  trigger   Trigger?
+  zapRuns   zapRun[]
 }
 
 model Trigger {
-  id          String            @id @default(uuid())
-  zapId       String            @unique
-  triggerId   String
-  type        AvailableTriggers @relation(fields: [triggerId], references: [id])
-  zap         Zap               @relation(fields: [zapId], references: [id])
-}
-
-model Action {
-  id          String            @id @default(uuid())
-  zapId       String
-  zap         Zap               @relation(fields: [zapId], references: [id])
-  actionId    String
-  type        AvailableAction   @relation(fields: [actionId], references: [id])
-  sortingOrder Int              @default(0)
+  id        String           @id @default(uuid())
+  zapId     String           @unique
+  triggerId String
+  type      AvailableTrigger @relation(fields: [triggerId], references: [id])
+  zap       Zap              @relation(fields: [zapId], references: [id])
 }
 
 model AvailableAction {
-  id        String  @id @default(uuid())
-  name      String
-  actions   Action[]
+  id     String   @id @default(uuid())
+  name   String
+  Action Action[]
 }
 
-model AvailableTriggers {
-  id       String     @id @default(uuid())
+model AvailableTrigger {
+  id       String    @id @default(uuid())
   name     String
   triggers Trigger[]
+
+  @@map("AvailableTriggers")
 }
 
 model zapRun {
-  id            String     @id @default(uuid())
-  zapId         String
-  zap           Zap        @relation(fields: [zapId], references: [id])
-  metadata      Json
-  zapRunOutbox  ZapRunOutbox?
+  id           String        @id @default(uuid())
+  zapId        String
+  metadata     Json
+  zapRunOutbox ZapRunOutbox?
+  zap          Zap           @relation(fields: [zapId], references: [id])
 }
 
 model ZapRunOutbox {
-  id          String    @id @default(uuid())
-  zapRunId    String    @unique
-  zapRun      zapRun    @relation(fields: [zapRunId], references: [id])
+  id       String @id @default(uuid())
+  zapRunId String @unique
+  zapRun   zapRun @relation(fields: [zapRunId], references: [id])
+}
+
+model Action {
+  id              String          @id @default(uuid())
+  zapId           String
+  actionId        String
+  AvailableAction AvailableAction @relation(fields: [actionId], references: [id])
+  Zap             Zap             @relation(fields: [zapId], references: [id])
+  sortingOrder Int            @default(0)
 }
