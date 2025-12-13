@@ -5,9 +5,13 @@ import { PrimaryButton } from "@/components/buttons/PrimaryButton";
 import { CheckFeature } from "@/components/CheckFeature";
 import { Input } from "@/components/Input";
 import { useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { BACKEND__URL } from "../config";
 
 
 export default function(){
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     return <div>
@@ -34,10 +38,16 @@ export default function(){
 
                     <Input label="Password" onChange={ e=> {
                         setPassword(e.target.value)
-                    }} type="text" placeholder="Your password"/>
+                    }} type="password" placeholder="Your password"/>
                     <div className="pt-4">
-                        <PrimaryButton onClick={() => {
-                        }} size="big">Get Started for free</PrimaryButton>
+                        <PrimaryButton onClick={async() => {
+                            const res = await axios.post(`${BACKEND__URL}/api/v1/user/signin`, {
+                                username : email,
+                                password
+                            });
+                            localStorage.setItem("token", res.data.token);
+                            router.push("/dashboard");
+                        }} size="big">Log in</PrimaryButton>
                     </div>
                 </div>
             </div>
