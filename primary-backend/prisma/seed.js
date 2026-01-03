@@ -8,34 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
-const client = new client_1.PrismaClient();
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
-app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.params.userId;
-    const zapId = req.params.zapId;
-    const body = req.body;
-    yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        const run = yield tx.zapRun.create({
+const prismaClient = new client_1.PrismaClient();
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield prismaClient.availableAction.create({
             data: {
-                zapId: zapId,
-                metadata: body
+                id: "webhook",
+                name: "Webhook",
+                image: "https://img.icons8.com/color/1200/webhook.jpg"
             }
         });
-        yield tx.zapRunOutbox.create({
+        yield prismaClient.availableTrigger.create({
             data: {
-                zapRunId: run.id
+                id: "upi",
+                name: "UPI",
+                image: "https://t3.ftcdn.net/jpg/05/60/50/16/360_F_560501607_x7crxqBWbmbgK2k8zOL0gICbIbK9hP6y.jpg"
             }
         });
-    }));
-    res.json({
-        message: "Webhook Received"
+        yield prismaClient.availableTrigger.create({
+            data: {
+                id: "email",
+                name: "Email",
+                image: "https://cdn.pixabay.com/photo/2016/01/26/17/15/gmail-1162901_1280.png"
+            }
+        });
     });
-}));
-app.listen(3002);
+}
+main();

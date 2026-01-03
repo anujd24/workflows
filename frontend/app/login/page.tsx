@@ -9,12 +9,13 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { BACKEND__URL } from "../config";
 
-
+console.log(BACKEND__URL);
 export default function(){
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     return <div>
+        
         <Appbar/>
         <div className="flex justify-center">
             <div className="flex pt-8 max-w-4xl gap-2">
