@@ -27,22 +27,33 @@ function main() {
                 take: 10
             });
             console.log(pendingRows);
-            producer.send({
-                topic: TOPIC_NAME,
-                messages: pendingRows.map(r => {
-                    return {
-                        value: JSON.stringify({ zapRunId: r.zapRunId, stage: 0 })
-                    };
-                })
-            });
-            yield client.zapRunOutbox.deleteMany({
-                where: {
-                    id: {
-                        in: pendingRows.map(x => x.id)
+            if (pendingRows.length === 0) {
+                console.log("queue empty, sleeping for 3 seconds.");
+                yield new Promise(r => setTimeout(r, 3000));
+                continue; // again go at the start of the loop
+            }
+            try {
+                console.log(`processing ${pendingRows.length} events`);
+                producer.send({
+                    topic: TOPIC_NAME,
+                    messages: pendingRows.map(r => {
+                        return {
+                            value: JSON.stringify({ zapRunId: r.zapRunId, stage: 0 })
+                        };
+                    })
+                });
+                yield client.zapRunOutbox.deleteMany({
+                    where: {
+                        id: {
+                            in: pendingRows.map(x => x.id)
+                        }
                     }
-                }
-            });
-            yield new Promise(r => setTimeout(r, 3000));
+                });
+            }
+            catch (error) {
+                console.error("Error sending batch to Kafka:", error);
+                yield new Promise(r => setTimeout(r, 1000));
+            }
         }
     });
 }

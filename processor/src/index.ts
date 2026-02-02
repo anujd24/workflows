@@ -6,7 +6,15 @@ const client = new PrismaClient;
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
-    brokers : ['localhost:9092']
+    brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
+    ssl: {
+        rejectUnauthorized: false 
+    },
+    sasl: {
+        mechanism: 'scram-sha-256', 
+        username: process.env.KAFKA_USERNAME || "",
+        password: process.env.KAFKA_PASSWORD || "",
+    }
 })
 
 async function main(){
@@ -20,25 +28,35 @@ async function main(){
         })
         console.log(pendingRows);
 
-        producer.send({
-            topic : TOPIC_NAME,
-            messages : pendingRows.map(r => {
-                return {
-                    value : JSON.stringify({zapRunId: r.zapRunId, stage : 0})
-                }
-            })
-        })
+        if (pendingRows.length === 0) {
+            console.log("queue empty, sleeping for 3 seconds.");
+            await new Promise(r => setTimeout(r, 3000));
+            continue; // again go at the start of the loop
+        }
 
-        await client.zapRunOutbox.deleteMany({
-            where : {
-                id : {
-                    in : pendingRows.map(x  => x.id)
+        try {
+            console.log(`processing ${pendingRows.length} events`);
+            producer.send({
+                topic : TOPIC_NAME,
+                messages : pendingRows.map(r => {
+                    return {
+                        value : JSON.stringify({zapRunId: r.zapRunId, stage : 0})
+                    }
+                })
+            })
+
+            await client.zapRunOutbox.deleteMany({
+                where : {
+                    id : {
+                        in : pendingRows.map(x  => x.id)
+                    }
                 }
-            }
-        })
+            });
         
-        await new Promise(r => setTimeout(r,3000));
+        } catch (error){
+            console.error("Error sending batch to Kafka:", error);
+            await new Promise(r => setTimeout(r, 1000));
+        }   
     }
 }
-
 main();
