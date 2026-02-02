@@ -19,7 +19,7 @@ const kafka = new Kafka({
     clientId : 'outbox-processor',
     brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
     ssl: {
-        rejectUnauthorized: false 
+        ca : process.env.KAFKA_CA_CERT ? [process.env.KAFKA_CA_CERT.replace(/\\n/g, '\n')] : undefined, 
     },
     sasl: {
         mechanism: 'scram-sha-256', 
