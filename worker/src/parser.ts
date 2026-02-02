@@ -1,42 +1,24 @@
+export function parse(text: string, values: any, startDelimeter = "{", endDelimeter = "}") {
+    const regex = new RegExp(`\\${startDelimeter}(.*?)\\${endDelimeter}`, "g");
 
-export function parse(text: string, values: any, startDelimeter = "{", endDelimeter = "}"){
-    let startIndex = 0;
-    let endIndex = 1;
+    return text.replace(regex, (match, key) => {
+        const keys = key.trim().split("."); 
+        let localValues = values;
 
-    let finalString = "";
-    while(endIndex != text.length){
-        if(text[startIndex] === startDelimeter){
-            // const startPoint = startIndex + 1;   
-            let endPoint = startIndex + 2;
-            while(text[endPoint] !== endDelimeter){
-                endPoint++;
-            }
-            let stringHoldingValue = text.slice(startIndex + 1, endPoint);
-            const keys = stringHoldingValue.split(".");
-            let localValues = {
-                ...values
-            }
-
-            for(let i =0; i<keys.length; i++){
-                if (typeof localValues === "string"){
+        for (let i = 0; i < keys.length; i++) {
+            if (typeof localValues === "string") {
+                try {
                     localValues = JSON.parse(localValues);
-                }    
-                localValues = localValues[keys[i]]; 
+                } catch (e) {
+                }
             }
-            finalString += localValues;
-            startIndex = endPoint + 1;
-            endIndex = endPoint + 2;
+            if (!localValues || typeof localValues !== 'object' || !(keys[i] in localValues)) {
+                return match; 
+            }
+            
+            localValues = localValues[keys[i]];
         }
-        else{
-            finalString += text[startIndex];
-            startIndex++;
-            endIndex++;
-        }
-    }
 
-    if(text[startIndex]){
-        finalString += text[startIndex];
-    }
-
-    return finalString;
+        return localValues; 
+    });
 }
