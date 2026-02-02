@@ -1,14 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import { Kafka } from "kafkajs";
+import dotenv from "dotenv";
+dotenv.config();
 
 const TOPIC_NAME = "zap-events";
 const client = new PrismaClient;
+
+const getCaCert = () => {
+    const base64Cert = process.env.KAFKA_CA_CERT;
+    if (!base64Cert) {
+        console.error("KAFKA_CA_CERT environment variable not found");
+        return "";
+    }
+    return Buffer.from(base64Cert, 'base64').toString('utf-8');
+};
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
     brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
     ssl: {
-        ca : process.env.KAFKA_CA_CERT ? [process.env.KAFKA_CA_CERT.replace(/\\n/g, '\n')] : undefined,
+        ca: [getCaCert()],
+        rejectUnauthorized: true    
     },
     sasl: {
         mechanism: 'scram-sha-256', 
