@@ -14,28 +14,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
+const cors_1 = __importDefault(require("cors"));
 const client = new client_1.PrismaClient();
 const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.userId;
     const zapId = req.params.zapId;
     const body = req.body;
-    yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        const run = yield tx.zapRun.create({
-            data: {
-                zapId: zapId,
-                metadata: body
-            }
+    try {
+        yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            const run = yield tx.zapRun.create({
+                data: {
+                    zapId: zapId,
+                    metadata: body
+                }
+            });
+            yield tx.zapRunOutbox.create({
+                data: {
+                    zapRunId: run.id
+                }
+            });
+        }));
+        res.json({
+            message: "Webhook Received"
         });
-        yield tx.zapRunOutbox.create({
-            data: {
-                zapRunId: run.id
-            }
+    }
+    catch (error) {
+        console.error("Webhook Error:", error);
+        res.status(411).json({
+            message: "Error while storing webhook. Check Zap ID."
         });
-    }));
-    res.json({
-        message: "Webhook Received"
-    });
+    }
 }));
 app.listen(3002);
