@@ -6,22 +6,32 @@ dotenv.config();
 const TOPIC_NAME = "zap-events";
 const client = new PrismaClient;
 
-const getCaCert = () => {
+function getSSLConfig() {
     const base64Cert = process.env.KAFKA_CA_CERT;
-    if (!base64Cert) {
-        console.error("KAFKA_CA_CERT environment variable not found");
-        return "";
+    
+    if (base64Cert) {
+        console.log(" CA Certificate detected in Env Vars. Decoding...");
+        try {
+            const ca = Buffer.from(base64Cert, 'base64').toString('utf-8');
+            return {
+                ca: [ca],
+                rejectUnauthorized: true
+            };
+        } catch (e) {
+            console.error(" Failed to decode Certificate. Falling back to INSECURE mode.");
+        }
+    } else {
+        console.log(" No CA Certificate found. Using INSECURE mode (rejectUnauthorized: false).");
     }
-    return Buffer.from(base64Cert, 'base64').toString('utf-8');
-};
+    return {
+        rejectUnauthorized: false
+    };
+}
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
     brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
-    ssl: {
-        ca: [getCaCert()],
-        rejectUnauthorized: true    
-    },
+    ssl: getSSLConfig(),
     sasl: {
         mechanism: 'scram-sha-256', 
         username: process.env.KAFKA_USERNAME || "",
