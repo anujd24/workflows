@@ -19,6 +19,7 @@ model Zap {
   id        String   @id @default(uuid())
   triggerId String
   userId    Int
+  createdAt DateTime @default(now())
   Action    Action[]
   trigger   Trigger?
   zapRuns   zapRun[]
