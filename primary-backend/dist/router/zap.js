@@ -69,7 +69,7 @@ router.get("/", middleware_1.authMiddleware, (req, res) => __awaiter(void 0, voi
         include: {
             Action: {
                 include: {
-                    AvailableAction: true // available action is type only
+                    AvailableAction: true
                 }
             },
             trigger: {
@@ -95,7 +95,7 @@ router.get("/:zapId", middleware_1.authMiddleware, (req, res) => __awaiter(void 
         include: {
             Action: {
                 include: {
-                    AvailableAction: true // available action is type only
+                    AvailableAction: true
                 }
             },
             trigger: {

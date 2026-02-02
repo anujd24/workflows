@@ -62,7 +62,7 @@ router.get("/", authMiddleware, async(req,res)=>{
         include : {
             Action : {
                 include : {
-                    AvailableAction : true // available action is type only
+                    AvailableAction : true 
                 }
             },
             trigger : {
@@ -89,7 +89,7 @@ router.get("/:zapId", authMiddleware, async(req,res)=>{
         include : {
             Action : {
                 include : {
-                    AvailableAction : true // available action is type only
+                    AvailableAction : true 
                 }
             },
             trigger : {
