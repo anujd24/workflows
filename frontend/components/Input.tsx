@@ -1,10 +1,11 @@
 "use client";
 
-export const Input = ({label, placeholder, onChange, type = "text"}: {
+export const Input = ({label, placeholder, onChange, type = "text", value}: {
     label : string;
     placeholder : string;
     onChange : (e : any) => void;
     type?: "text" | "password" 
+    value? : string
 }) => {
     return <div>
         <div className="text-sm pb-1 pt-2">
