@@ -42,7 +42,7 @@ export default function ZapDetailsPage({ params }: { params: { zapId: string } }
 
   useEffect(() => {
 
-    axios.get(`${BACKEND__URL}/api/v1/zap`, {
+    axios.get(`${BACKEND__URL}api/v1/zap`, {
         headers: { Authorization: localStorage.getItem("token") },
     })
     .then(res => {
@@ -189,7 +189,7 @@ export default function ZapDetailsPage({ params }: { params: { zapId: string } }
 
 function WebhookDisplay({ zapId }: { zapId: string }) {
     const [copied, setCopied] = useState(false);
-    const url = `${HOOKS_URL}/hooks/catch/1/${zapId}`;
+    const url = `${HOOKS_URL}hooks/catch/1/${zapId}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(url);

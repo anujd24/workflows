@@ -31,10 +31,10 @@ function useAvailableActionsAndTriggers() {
     const [availableTriggers, setAvailableTriggers] = useState<any[]>([]);
 
     useEffect(() => {
-        axios.get(`${BACKEND__URL}/api/v1/trigger/available`)
+        axios.get(`${BACKEND__URL}api/v1/trigger/available`)
             .then(x => setAvailableTriggers(x.data.availableTriggers));
 
-        axios.get(`${BACKEND__URL}/api/v1/action/available`)
+        axios.get(`${BACKEND__URL}api/v1/action/available`)
             .then(x => setAvailableActions(x.data.availableActions));
     }, []);
 
@@ -175,7 +175,7 @@ export default function ZapBuilder() {
         console.log("sending payload:", payload);
 
         try {
-            const response = await axios.post(`${BACKEND__URL}/api/v1/zap`, payload, {
+            const response = await axios.post(`${BACKEND__URL}api/v1/zap`, payload, {
                 headers: { Authorization: localStorage.getItem("token") }
             });
             
@@ -188,7 +188,7 @@ export default function ZapBuilder() {
                 return;
             }
 
-            const webhookUrl = `${HOOKS_URL}/hooks/catch/1/${newZapId}`;
+            const webhookUrl = `${HOOKS_URL}hooks/catch/1/${newZapId}`;
             console.log("🔗 Generated Webhook URL:", webhookUrl);
             
             setPublishedZapUrl(webhookUrl); 
@@ -357,7 +357,7 @@ function RunButton({ webhookUrl }: { webhookUrl: string }) {
             setLogs(prev => [...prev, `error: ${errorMessage}`]);
 
             if (e.message === "Network Error") {
-                console.warn("💡 HINT: Check if Backend (localhost:8080) is running? Check CORS?");
+                console.warn("Check if Backend (localhost:8080) is running? Check CORS?");
             }
         }
     }
