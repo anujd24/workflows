@@ -175,7 +175,7 @@ export default function ZapBuilder() {
         console.log("sending payload:", payload);
 
         try {
-            const response = await axios.post(`${BACKEND__URL}api/v1/zap`, payload, {
+            const response = await axios.post(`${BACKEND__URL}/api/v1/zap`, payload, {
                 headers: { Authorization: localStorage.getItem("token") }
             });
             
@@ -188,7 +188,7 @@ export default function ZapBuilder() {
                 return;
             }
 
-            const webhookUrl = `${HOOKS_URL}hooks/catch/1/${newZapId}`;
+            const webhookUrl = `${HOOKS_URL}/hooks/catch/1/${newZapId}`;
             console.log("🔗 Generated Webhook URL:", webhookUrl);
             
             setPublishedZapUrl(webhookUrl); 
