@@ -11,8 +11,9 @@ const kafka = new Kafka({
     clientId : 'outbox-processor',
     brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
     ssl: {
-        ca : [Ca_Cert],
-        rejectUnauthorized : true
+        ca : [Ca_Cert.replace(/\\r\\n/g, "\\n")],
+        rejectUnauthorized : true,
+        checkServerIdentity : () => undefined
     },
     sasl: {
         mechanism: 'scram-sha-256', 
@@ -28,7 +29,7 @@ async function main(){
         console.log("kafka connected")
     } catch(e){  
         console.error("kafka connection failed : ", e)
-        return;
+        process.exit(1);
     }
     
 
@@ -66,7 +67,7 @@ async function main(){
         
         } catch (error){
             console.error("Error sending batch to Kafka:", error);
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 2000));
         }   
     }
 }
