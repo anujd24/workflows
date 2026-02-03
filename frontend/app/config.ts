@@ -1,5 +1,5 @@
 
 
-export const BACKEND__URL = "http://localhost:3000"
+export const BACKEND__URL = "https://zapflux-backend.onrender.com/"
 
-export const HOOKS_URL = "https://localhost:3002"
+export const HOOKS_URL = "https://zapflux-hooks.onrender.com/"
