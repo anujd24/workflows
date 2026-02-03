@@ -31,10 +31,10 @@ function useAvailableActionsAndTriggers() {
     const [availableTriggers, setAvailableTriggers] = useState<any[]>([]);
 
     useEffect(() => {
-        axios.get(`${BACKEND__URL}api/v1/trigger/available`)
+        axios.get(`${BACKEND__URL}/api/v1/trigger/available`)
             .then(x => setAvailableTriggers(x.data.availableTriggers));
 
-        axios.get(`${BACKEND__URL}api/v1/action/available`)
+        axios.get(`${BACKEND__URL}/api/v1/action/available`)
             .then(x => setAvailableActions(x.data.availableActions));
     }, []);
 
@@ -189,7 +189,7 @@ export default function ZapBuilder() {
             }
 
             const webhookUrl = `${HOOKS_URL}/hooks/catch/1/${newZapId}`;
-            console.log("🔗 Generated Webhook URL:", webhookUrl);
+            console.log("Generated Webhook URL:", webhookUrl);
             
             setPublishedZapUrl(webhookUrl); 
 
