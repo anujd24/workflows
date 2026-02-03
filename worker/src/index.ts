@@ -6,30 +6,32 @@ import { Kafka } from "kafkajs";
 import { sendEmail } from "./email";
 import { parse } from "./parser";
 import { sendUpi } from "./upi";
+import { Ca_Cert } from "./ca";
+import http from "http"
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+const server = http.createServer((req, res) => {
+    res.writeHead(200,  { 'Content-Type': 'text/plain' });
+    res.end('Processor is running fine!');
+})
+const port = process.env.PORT || 8080;
+server.listen(port, () => {
+    console.log(`server listening on port ${port}`);
+});
 
 const TOPIC_NAME = "zap-events";
 const prismaClient = new PrismaClient();
-
-const getCaCert = () => {
-    const base64Cert = process.env.KAFKA_CA_CERT;
-    if (!base64Cert) {
-        console.error("KAFKA_CA_CERT environment variable not found");
-        return "";
-    }
-    return Buffer.from(base64Cert, 'base64').toString('utf-8');
-};
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
     brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
     ssl: {
-        ca: [getCaCert()],
-        rejectUnauthorized: true    
+        ca: [Ca_Cert.replace(/\\r\\n/g, "\\n")],
+        rejectUnauthorized: true,
+        checkServerIdentity: () => undefined    
     },
     sasl: {
         mechanism: 'scram-sha-256', 
