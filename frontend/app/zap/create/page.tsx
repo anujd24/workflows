@@ -329,38 +329,45 @@ function RunButton({ webhookUrl }: { webhookUrl: string }) {
     const [logs, setLogs] = useState<string[]>([]);
 
     const handleRun = async () => {
-        setStatus("loading");
-        setLogs(["triggering webhook...", "connecting to backend..."]);
-        
+    setStatus("loading");
+    setLogs(["triggering webhook...", "connecting to backend..."]);
+
+    try {
+        let finalBody;
         try {
-            console.log("hitting webhook url...", webhookUrl);
-            console.log(" payload:", { comment: payload });
+            finalBody = JSON.parse(payload);
+        } catch (e) {
+            finalBody = { comment: payload };
+        }
 
-            const response = await axios.post(webhookUrl, { comment: payload });
-            
-            console.log("success response:", response.data);
+        console.log("hitting webhook url...", webhookUrl);
+        console.log("sending payload:", finalBody);
 
-            setTimeout(() => {
-                setLogs(prev => [...prev, "webhook received by backend"]);
-            }, 800);
+        const response = await axios.post(webhookUrl, finalBody);
 
-            setTimeout(() => {
-                setStatus("success");
-                setLogs(prev => [...prev, " workflow completed!"]);
-            }, 4500);
+        console.log("success response:", response.data);
 
-        } catch (e: any) {
-            console.error("critical error:", e); 
-            
-            setStatus("error");
-            const errorMessage = e.response?.data?.message || e.message || "Unknown Connection Error";
-            setLogs(prev => [...prev, `error: ${errorMessage}`]);
+        setTimeout(() => {
+            setLogs(prev => [...prev, "webhook received by backend"]);
+        }, 800);
 
-            if (e.message === "Network Error") {
-                console.warn("Check if Backend (localhost:8080) is running? Check CORS?");
-            }
+        setTimeout(() => {
+            setStatus("success");
+            setLogs(prev => [...prev, " workflow completed"]);
+        }, 4500);
+
+    } catch (e: any) {
+        console.error("critical error:", e);
+
+        setStatus("error");
+        const errorMessage = e.response?.data?.message || e.message || "Unknown Connection Error";
+        setLogs(prev => [...prev, `error: ${errorMessage}`]);
+
+        if (e.message === "Network Error") {
+            console.warn("check if backend is running and Check CORS");
         }
     }
+}
 
     return (
         <div className="bg-slate-900 rounded-lg p-4 text-white font-mono text-sm border border-slate-700">
