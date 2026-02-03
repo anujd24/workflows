@@ -156,6 +156,8 @@ async function main() {
                 
                 const zapRunMetadata = zapRunDetails?.metadata as Record<string, any>;
 
+                console.log("METADATA RECEIVED:", JSON.stringify(zapRunMetadata, null, 2));
+
                 if(currentAction.AvailableAction.name === "email"){
                     const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
                     const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
