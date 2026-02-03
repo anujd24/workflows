@@ -1,8 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { Kafka } from "kafkajs";
 import { Ca_Cert } from "./ca";
+import http from "http"
 import dotenv from "dotenv";
 dotenv.config();
+
+const server = http.createServer((req, res) => {
+    res.writeHead(200,  { 'Content-Type': 'text/plain' });
+    res.end('Processor is running fine!');
+})
+const port = process.env.PORT || 8080;
+server.listen(port, () => {
+    console.log(`server listening on port ${port}`);
+});
 
 const TOPIC_NAME = "zap-events";
 const client = new PrismaClient;
