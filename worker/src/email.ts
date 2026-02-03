@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import {parse} from "./parser"
+import SMTPConnection from "nodemailer/lib/smtp-connection";
 
 
 export async function sendEmail(to: string, body: string, bindings: any) {
@@ -16,9 +17,9 @@ export async function sendEmail(to: string, body: string, bindings: any) {
     }
 
     const transport = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: 587,
-        secure: false, 
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: 465,
+        secure: true, 
         auth: {
             user: process.env.SMTP_USERNAME,
             pass: process.env.SMTP_PASSWORD,
