@@ -57,7 +57,7 @@ router.get("/", authMiddleware, async(req,res)=>{
     const id = req.id;
     const zaps = await prismaClient.zap.findMany({
         where :{
-            userId : id
+            userId : parseInt(id)
         }, 
         include : {
             Action : {
@@ -84,7 +84,7 @@ router.get("/:zapId", authMiddleware, async(req,res)=>{
     const zaps = await prismaClient.zap.findFirst({
         where :{
             id : zapId,
-            userId : id
+            userId : parseInt(id)
         }, 
         include : {
             Action : {
