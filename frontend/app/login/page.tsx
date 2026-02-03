@@ -20,7 +20,7 @@ export default function Login() {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
-            const res = await axios.post(`${BACKEND__URL}/api/v1/user/signin`, {
+            const res = await axios.post(`${BACKEND__URL}api/v1/user/signin`, {
                 username: email,
                 password
             });
