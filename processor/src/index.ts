@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Kafka } from "kafkajs";
-import { Ca_Cert } from "./ca";
+// import { Ca_Cert } from "./ca";
 import http from "http"
 import dotenv from "dotenv";
 dotenv.config();
@@ -19,16 +19,12 @@ const client = new PrismaClient;
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
-    brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
-    ssl: {
-        ca : [Ca_Cert.replace(/\\r\\n/g, "\\n")],
-        rejectUnauthorized : true,
-        checkServerIdentity : () => undefined
-    },
+    brokers: [ process.env.KAFKA_BROKER!], 
+    ssl: true,
     sasl: {
         mechanism: 'scram-sha-256', 
-        username: process.env.KAFKA_USERNAME || "",
-        password: process.env.KAFKA_PASSWORD || "",
+        username: process.env.KAFKA_USERNAME!,
+        password: process.env.KAFKA_PASSWORD!,
     }
 })
 
