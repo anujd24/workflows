@@ -13,7 +13,7 @@ export const RunButton = ({ zapId, webhookUrl }: { zapId: string, webhookUrl: st
 
         try {
             await axios.post(webhookUrl, {
-                comment: payload
+                payload
             });
 
             setLogs(prev => [...prev, "Webhook received by Backend", "Processing in queue..."]);
