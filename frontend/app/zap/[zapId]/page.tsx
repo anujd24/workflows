@@ -42,7 +42,7 @@ export default function ZapDetailsPage({ params }: { params: { zapId: string } }
 
   useEffect(() => {
 
-    axios.get(`${BACKEND__URL}api/v1/zap`, {
+    axios.get(`${BACKEND__URL}/api/v1/zap`, {
         headers: { Authorization: localStorage.getItem("token") },
     })
     .then(res => {
