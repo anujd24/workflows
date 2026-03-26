@@ -6,7 +6,7 @@ import { Kafka } from "kafkajs";
 import { sendEmail } from "./email";
 import { parse } from "./parser";
 import { sendUpi } from "./upi";
-import { Ca_Cert } from "./ca";
+// import { Ca_Cert } from "./ca";
 import http from "http"
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200,  { 'Content-Type': 'text/plain' });
     res.end('Processor is running fine!');
 })
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3004;
 server.listen(port, () => {
     console.log(`server listening on port ${port}`);
 });
@@ -27,16 +27,12 @@ const prismaClient = new PrismaClient();
 
 const kafka = new Kafka({
     clientId : 'outbox-processor',
-    brokers: [process.env.KAFKA_BROKER || "localhost:9092"], 
-    ssl: {
-        ca: [Ca_Cert.replace(/\\r\\n/g, "\\n")],
-        rejectUnauthorized: true,
-        checkServerIdentity: () => undefined    
-    },
+    brokers: [ process.env.KAFKA_BROKER!], 
+    ssl: true,
     sasl: {
         mechanism: 'scram-sha-256', 
-        username: process.env.KAFKA_USERNAME || "",
-        password: process.env.KAFKA_PASSWORD || "",
+        username: process.env.KAFKA_USERNAME!,
+        password: process.env.KAFKA_PASSWORD!,
     }
 })
 
@@ -189,7 +185,6 @@ async function main() {
                     console.log("AI Data saved to DB");
                 }
 
-                await new Promise(r => setTimeout(r, 5000));
                 
                 const lastStage = (zapRunDetails?.zap.Action?.length || 1) - 1;
 
