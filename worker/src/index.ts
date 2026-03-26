@@ -83,6 +83,10 @@ async function runAiParser(actionMetadata: any, inputData: any) {
     }
 }
 
+console.log("KAFKA_BROKER:", process.env.KAFKA_BROKER);
+console.log("KAFKA_USERNAME:", process.env.KAFKA_USERNAME);
+console.log("KAFKA_PASSWORD:", process.env.KAFKA_PASSWORD ? "SET" : "NOT SET");
+
 async function main() {
     const consumer = kafka.consumer({
         groupId : "main-worker"
