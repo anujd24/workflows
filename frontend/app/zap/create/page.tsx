@@ -324,7 +324,12 @@ export default function ZapBuilder() {
 }
 
 function RunButton({ webhookUrl }: { webhookUrl: string }) {
-    const [payload, setPayload] = useState('Please pay 500 to admin@ybl and email hello@gmail.com');
+    const [payload, setPayload] = useState(`{
+        "email": "hello@gmail.com",
+        "amount": "500",
+        "address": "admin@ybl",
+        "body": "Payment of 500 done to admin@ybl"
+    }`);
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [logs, setLogs] = useState<string[]>([]);
 
@@ -337,7 +342,8 @@ function RunButton({ webhookUrl }: { webhookUrl: string }) {
         try {
             finalBody = JSON.parse(payload);
         } catch (e) {
-            finalBody = { comment: payload };
+            setStatus("error");
+            setLogs(["Invalid JSON! Please enter valid JSON like: {\"email\": \"x@gmail.com\"}"]);
         }
 
         console.log("hitting webhook url...", webhookUrl);
