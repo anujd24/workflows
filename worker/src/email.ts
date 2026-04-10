@@ -16,10 +16,11 @@ export async function sendEmail(to: string, body: string, bindings: any) {
         return; 
     }
 
+    const smtpPort = parseInt(process.env.SMTP_PORT || "587");
     const transport = nodemailer.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: 465,
-        secure: true, 
+        port: smtpPort,
+        secure: smtpPort === 465, 
         auth: {
             user: process.env.SMTP_USERNAME,
             pass: process.env.SMTP_PASSWORD,
