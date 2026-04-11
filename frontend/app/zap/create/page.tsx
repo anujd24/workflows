@@ -342,8 +342,8 @@ function RunButton({ webhookUrl }: { webhookUrl: string }) {
         try {
             finalBody = JSON.parse(payload);
         } catch (e) {
-            setStatus("error");
-            setLogs(["Invalid JSON! Please enter valid JSON like: {\"email\": \"x@gmail.com\"}"]);
+            console.log("Input is not JSON, wrapping in comment object");
+            finalBody = { comment: payload };
         }
 
         console.log("hitting webhook url...", webhookUrl);
