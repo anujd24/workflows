@@ -7,7 +7,7 @@ function getTransport() {
     if (transport) return transport;
 
     const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").replace(/"/g, "").trim();
-    const smtpPort = parseInt((process.env.SMTP_PORT || "587").replace(/"/g, "").trim());
+    const smtpPort = parseInt((process.env.SMTP_PORT || "465").replace(/"/g, "").trim());
     const username = (process.env.SMTP_USERNAME || "").replace(/"/g, "").trim();
     const password = (process.env.SMTP_PASSWORD || "").replace(/"/g, "").trim();
 
