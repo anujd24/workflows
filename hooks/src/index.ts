@@ -32,9 +32,10 @@ app.post("/hooks/catch/:userId/:zapId", async(req, res) =>{
             message : "Webhook Received"
         })
     } catch(error){
-        console.error("Webhook Error:", error);
+        console.error("Webhook Storage Error Details:", error);
         res.status(411).json({
-            message: "Error while storing webhook. Check Zap ID."
+            message: "Error while storing webhook. Check Zap ID or DB connection.",
+            error: error instanceof Error ? error.message : "Internal Database Error"
         });
     }
     
