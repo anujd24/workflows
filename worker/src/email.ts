@@ -11,26 +11,22 @@ function getTransport() {
     const username = (process.env.SMTP_USERNAME || "").replace(/"/g, "").trim();
     const password = (process.env.SMTP_PASSWORD || "").replace(/"/g, "").trim();
 
+    // Debug log to check what variables are being read
+    console.log(`[Email Service] Config: Host=${smtpHost}, Port=${smtpPort}, User=${username}`);
+
     const config: any = {
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465, // Use SSL for port 465
         auth: {
             user: username,
             pass: password,
         },
-        logger: true, // Log to console
-        debug: true,  // Include SMTP traffic in logs
-    };
-
-    // Gmail optimization
-    if (smtpHost.includes("gmail.com")) {
-        config.service = "gmail";
-    } else {
-        config.host = smtpHost;
-        config.port = smtpPort;
-        config.secure = smtpPort === 465;
-    }
-
-    config.tls = {
-        rejectUnauthorized: false // Helps with some SMTP servers
+        tls: {
+            rejectUnauthorized: false // Helps bypass some local network restrictions
+        },
+        logger: true,
+        debug: true,
     };
 
     transport = nodemailer.createTransport(config);
@@ -40,7 +36,6 @@ function getTransport() {
 export async function sendEmail(to: string, body: string, bindings: any) {
     console.log("[Email Service] Processing email for:", to);
 
-    // Final check for placeholders
     const finalEmail = parse(to, bindings).trim();
     const finalBody = parse(body, bindings);
 
