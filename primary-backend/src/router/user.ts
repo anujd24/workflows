@@ -17,29 +17,36 @@ router.post("/signup", async(req,res)=>{
         })
     }
 
-    const userExists = await prismaClient.user.findFirst({
-        where:{
-            email: parsedData.data.username
-        }
-    });
+    try {
+        const userExists = await prismaClient.user.findFirst({
+            where:{
+                email: parsedData.data.username
+            }
+        });
 
-    if(userExists){
-        return res.status(403).json({
-            message : "User already exists"
+        if(userExists){
+            return res.status(403).json({
+                message : "User already exists"
+            })
+        }
+
+        await prismaClient.user.create({
+            data:{
+                email : parsedData.data.username,
+                password : parsedData.data.password,
+                name : parsedData.data.name
+            }
+        });
+
+        return res.json({
+            message : "Please verify your account by checking your email"
         })
+    } catch (error) {
+        console.error("Error during signup:", error);
+        return res.status(500).json({
+            message : "Internal server error during signup"
+        });
     }
-
-    await prismaClient.user.create({
-        data:{
-            email : parsedData.data.username,
-            password : parsedData.data.password,
-            name : parsedData.data.name
-        }
-    });
-
-    return res.json({
-        message : "Please verify your account by checking your email"
-    })
 })
 
 router.post("/signin", async(req,res)=>{
@@ -52,43 +59,57 @@ router.post("/signin", async(req,res)=>{
         })
     }
 
-    const user = await prismaClient.user.findFirst({
-        where:{
-            email: parsedData.data.username,
-            password : parsedData.data.password
+    try {
+        const user = await prismaClient.user.findFirst({
+            where:{
+                email: parsedData.data.username,
+                password : parsedData.data.password
+            }
+        });
+
+        if(!user){
+            return res.status(403).json({
+                message : "Sorry credentials are incorrect"
+            })
         }
-    });
 
-    if(!user){
-        return res.status(403).json({
-            message : "Sorry credentials are incorrect"
-        })
+        const token = jwt.sign({
+            id : user.id,
+        }, JWT_PASSWORD); 
+
+        res.json({
+            token : token,
+        });
+    } catch (error) {
+        console.error("Error during signin:", error);
+        return res.status(500).json({
+            message: "Internal server error during signin"
+        });
     }
-
-    const token = jwt.sign({
-        id : user.id,
-    }, JWT_PASSWORD); 
-
-    res.json({
-        token : token,
-    });
 })
 
 router.get("/", authMiddleware, async(req,res)=>{
     // @ts-ignore
     const id = req.id;
-    const user = await prismaClient.user.findFirst({
-        where:{
-            id
-        },
-        select : {
-            name : true,
-            email : true
-        }
-    });
-    return res.json({
-        user
-    })
+    try {
+        const user = await prismaClient.user.findFirst({
+            where:{
+                id
+            },
+            select : {
+                name : true,
+                email : true
+            }
+        });
+        return res.json({
+            user
+        })
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
 })
 
 export const userRouter = router;
