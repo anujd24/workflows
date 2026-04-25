@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 require('dotenv').config();
 const client_1 = require("@prisma/client");
@@ -15,13 +18,29 @@ const kafkajs_1 = require("kafkajs");
 const email_1 = require("./email");
 const parser_1 = require("./parser");
 const upi_1 = require("./upi");
+// import { Ca_Cert } from "./ca";
+const http_1 = __importDefault(require("http"));
 const generative_ai_1 = require("@google/generative-ai");
 const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const server = http_1.default.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Processor is running fine!');
+});
+const port = process.env.PORT || 3004;
+server.listen(port, () => {
+    console.log(`server listening on port ${port}`);
+});
 const TOPIC_NAME = "zap-events";
 const prismaClient = new client_1.PrismaClient();
 const kafka = new kafkajs_1.Kafka({
     clientId: 'outbox-processor',
-    brokers: ['localhost:9092'],
+    brokers: [process.env.KAFKA_BROKER],
+    ssl: true,
+    sasl: {
+        mechanism: 'scram-sha-256',
+        username: process.env.KAFKA_USERNAME,
+        password: process.env.KAFKA_PASSWORD,
+    }
 });
 function runAiParser(actionMetadata, inputData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -64,6 +83,9 @@ function runAiParser(actionMetadata, inputData) {
         }
     });
 }
+console.log("KAFKA_BROKER:", process.env.KAFKA_BROKER);
+console.log("KAFKA_USERNAME:", process.env.KAFKA_USERNAME);
+console.log("KAFKA_PASSWORD:", process.env.KAFKA_PASSWORD ? "SET" : "NOT SET");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const consumer = kafka.consumer({
@@ -122,6 +144,7 @@ function main() {
                         return;
                     }
                     const zapRunMetadata = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.metadata;
+                    console.log("METADATA RECEIVED:", JSON.stringify(zapRunMetadata, null, 2));
                     if (currentAction.AvailableAction.name === "email") {
                         const body = (0, parser_1.parse)((_c = currentAction.metadata) === null || _c === void 0 ? void 0 : _c.body, zapRunMetadata);
                         const to = (0, parser_1.parse)((_d = currentAction.metadata) === null || _d === void 0 ? void 0 : _d.email, zapRunMetadata);
@@ -148,7 +171,6 @@ function main() {
                         });
                         console.log("AI Data saved to DB");
                     }
-                    yield new Promise(r => setTimeout(r, 5000));
                     const lastStage = (((_g = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.Action) === null || _g === void 0 ? void 0 : _g.length) || 1) - 1;
                     if (lastStage !== stage) {
                         console.log(`pushing next stage (${stage + 1}) to Kafka`);

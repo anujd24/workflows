@@ -15,35 +15,60 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = sendEmail;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const parser_1 = require("./parser");
+let transport = null;
+function getTransport() {
+    if (transport)
+        return transport;
+    const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").replace(/"/g, "").trim();
+    const smtpPort = parseInt((process.env.SMTP_PORT || "587").replace(/"/g, "").trim());
+    const username = (process.env.SMTP_USERNAME || "").replace(/"/g, "").trim();
+    const password = (process.env.SMTP_PASSWORD || "").replace(/"/g, "").trim();
+    const config = {
+        auth: {
+            user: username,
+            pass: password,
+        },
+        logger: true, // Log to console
+        debug: true, // Include SMTP traffic in logs
+    };
+    // Gmail optimization
+    if (smtpHost.includes("gmail.com")) {
+        config.service = "gmail";
+    }
+    else {
+        config.host = smtpHost;
+        config.port = smtpPort;
+        config.secure = smtpPort === 465;
+    }
+    config.tls = {
+        rejectUnauthorized: false // Helps with some SMTP servers
+    };
+    transport = nodemailer_1.default.createTransport(config);
+    return transport;
+}
 function sendEmail(to, body, bindings) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("metadata received:", JSON.stringify(bindings, null, 2));
-        const finalEmail = (0, parser_1.parse)(to, bindings);
+        console.log("[Email Service] Processing email for:", to);
+        // Final check for placeholders
+        const finalEmail = (0, parser_1.parse)(to, bindings).trim();
         const finalBody = (0, parser_1.parse)(body, bindings);
-        console.log(`parsing '${to}' and result is: '${finalEmail}'`);
         if (!finalEmail || finalEmail.includes("{") || finalEmail.trim() === "") {
+            console.error("[Email Service] Stopped: Invalid or unparsed email address:", finalEmail);
             return;
         }
-        const transport = nodemailer_1.default.createTransport({
-            host: process.env.SMTP_HOST,
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USERNAME,
-                pass: process.env.SMTP_PASSWORD,
-            },
-        });
+        const transporter = getTransport();
+        const fromEmail = (process.env.SMTP_USERNAME || "").replace(/"/g, "").trim();
         try {
-            yield transport.sendMail({
-                from: process.env.SMTP_USERNAME,
+            yield transporter.sendMail({
+                from: `"ZapFlux" <${fromEmail}>`,
                 to: finalEmail,
-                subject: "ZapFlux",
+                subject: "ZapFlux Notification",
                 text: finalBody,
             });
-            console.log("email sent successfully to", finalEmail);
+            console.log("[Email Service] Success: Email sent to", finalEmail);
         }
         catch (e) {
-            console.error(" nodemailer Error:", e);
+            console.error("[Email Service] Error sending mail:", e);
         }
     });
 }
