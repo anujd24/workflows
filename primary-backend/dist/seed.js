@@ -13,6 +13,10 @@ const client_1 = require("@prisma/client");
 const prismaClient = new client_1.PrismaClient();
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
+        // Cleanup existing entries to ensure we only have what's requested
+        yield prismaClient.availableTrigger.deleteMany({});
+        yield prismaClient.availableAction.deleteMany({});
+        // Triggers
         yield prismaClient.availableTrigger.create({
             data: {
                 id: "webhook",
@@ -20,18 +24,26 @@ function main() {
                 image: "https://img.icons8.com/color/1200/webhook.jpg"
             }
         });
+        // Actions
         yield prismaClient.availableAction.create({
             data: {
                 id: "upi",
-                name: "UPI",
+                name: "upi",
                 image: "https://t3.ftcdn.net/jpg/05/60/50/16/360_F_560501607_x7crxqBWbmbgK2k8zOL0gICbIbK9hP6y.jpg"
             }
         });
         yield prismaClient.availableAction.create({
             data: {
                 id: "email",
-                name: "Email",
+                name: "email",
                 image: "https://cdn.pixabay.com/photo/2016/01/26/17/15/gmail-1162901_1280.png"
+            }
+        });
+        yield prismaClient.availableAction.create({
+            data: {
+                id: "ai-parser",
+                name: "AI Parser",
+                image: "https://img.icons8.com/color/1200/broken-robot.png"
             }
         });
     });

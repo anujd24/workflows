@@ -25,46 +25,68 @@ router.post("/", middleware_1.authMiddleware, (req, res) => __awaiter(void 0, vo
             message: "Incorrect inputs"
         });
     }
-    const zapId = yield db_1.prismaClient.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        const zap = yield db_1.prismaClient.zap.create({
-            data: {
-                userId: parseInt(id),
-                triggerId: "",
-                Action: {
-                    create: parsedData.data.actions.map((x, index) => ({
-                        actionId: x.availableActionId,
-                        sortingOrder: index,
-                        metadata: x.actionMetadata
-                    }))
+    const userId = parseInt(id);
+    console.log("[ZAP CREATE] userId:", userId, "| raw id from JWT:", id);
+    console.log("[ZAP CREATE] parsed payload:", JSON.stringify(parsedData.data, null, 2));
+    if (isNaN(userId)) {
+        console.error("[ZAP CREATE] userId is NaN, JWT id was:", id);
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+    try {
+        const zapId = yield db_1.prismaClient.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log("[ZAP CREATE] Creating zap record...");
+            const zap = yield tx.zap.create({
+                data: {
+                    userId,
+                    triggerId: "",
+                    Action: {
+                        create: parsedData.data.actions.map((x, index) => ({
+                            actionId: x.availableActionId,
+                            sortingOrder: index,
+                            metadata: x.actionMetadata || {}
+                        }))
+                    }
                 }
-            }
+            });
+            console.log("[ZAP CREATE] Zap created:", zap.id);
+            console.log("[ZAP CREATE] Creating trigger with triggerId:", parsedData.data.availableTriggerId);
+            const trigger = yield tx.trigger.create({
+                data: {
+                    triggerId: parsedData.data.availableTriggerId,
+                    zapId: zap.id
+                }
+            });
+            console.log("[ZAP CREATE] Trigger created:", trigger.id);
+            yield tx.zap.update({
+                where: {
+                    id: zap.id
+                },
+                data: {
+                    triggerId: trigger.id
+                }
+            });
+            console.log("[ZAP CREATE] Zap updated with trigger ID");
+            return zap.id;
+        }));
+        return res.json({
+            zapId
         });
-        const trigger = yield tx.trigger.create({
-            data: {
-                triggerId: parsedData.data.availableTriggerId,
-                zapId: zap.id
-            }
+    }
+    catch (e) {
+        console.error("[ZAP CREATE] Error:", e.message);
+        console.error("[ZAP CREATE] Full error:", e);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: e.message
         });
-        yield tx.zap.update({
-            where: {
-                id: zap.id
-            },
-            data: {
-                triggerId: trigger.id
-            }
-        });
-        return zap.id;
-    }));
-    return res.json({
-        zapId
-    });
+    }
 }));
 router.get("/", middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //@ts-ignore
     const id = req.id;
     const zaps = yield db_1.prismaClient.zap.findMany({
         where: {
-            userId: id
+            userId: parseInt(id)
         },
         include: {
             Action: {
@@ -90,7 +112,7 @@ router.get("/:zapId", middleware_1.authMiddleware, (req, res) => __awaiter(void 
     const zaps = yield db_1.prismaClient.zap.findFirst({
         where: {
             id: zapId,
-            userId: id
+            userId: parseInt(id)
         },
         include: {
             Action: {

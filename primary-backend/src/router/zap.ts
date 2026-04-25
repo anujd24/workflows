@@ -17,28 +17,41 @@ router.post("/", authMiddleware, async (req, res) => {
         });
     }
 
+    const userId = parseInt(id);
+    console.log("[ZAP CREATE] userId:", userId, "| raw id from JWT:", id);
+    console.log("[ZAP CREATE] parsed payload:", JSON.stringify(parsedData.data, null, 2));
+
+    if (isNaN(userId)) {
+        console.error("[ZAP CREATE] userId is NaN, JWT id was:", id);
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
     try {
         const zapId = await prismaClient.$transaction(async tx => {
+            console.log("[ZAP CREATE] Creating zap record...");
             const zap = await tx.zap.create({
                 data: {
-                    userId: parseInt(id),
+                    userId,
                     triggerId: "",
                     Action: {
                         create: parsedData.data.actions.map((x, index) => ({
                             actionId: x.availableActionId,
                             sortingOrder: index,
-                            metadata: x.actionMetadata
+                            metadata: x.actionMetadata || {}
                         }))
                     }
                 }
             });
+            console.log("[ZAP CREATE] Zap created:", zap.id);
 
+            console.log("[ZAP CREATE] Creating trigger with triggerId:", parsedData.data.availableTriggerId);
             const trigger = await tx.trigger.create({
                 data: {
                     triggerId: parsedData.data.availableTriggerId,
                     zapId: zap.id
                 }
             });
+            console.log("[ZAP CREATE] Trigger created:", trigger.id);
 
             await tx.zap.update({
                 where: {
@@ -48,6 +61,7 @@ router.post("/", authMiddleware, async (req, res) => {
                     triggerId: trigger.id
                 }
             });
+            console.log("[ZAP CREATE] Zap updated with trigger ID");
 
             return zap.id;
         });
@@ -56,7 +70,8 @@ router.post("/", authMiddleware, async (req, res) => {
             zapId
         });
     } catch (e: any) {
-        console.error("Error creating zap:", e);
+        console.error("[ZAP CREATE] Error:", e.message);
+        console.error("[ZAP CREATE] Full error:", e);
         return res.status(500).json({
             message: "Internal server error",
             error: e.message
