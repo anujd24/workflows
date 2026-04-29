@@ -13,6 +13,8 @@ app.post("/hooks/catch/:userId/:zapId", async(req, res) =>{
     const zapId = req.params.zapId;
     const body = req.body;
 
+    console.log(`[WEBHOOK RECEIVED] userId: ${userId}, zapId: ${zapId}`);
+
     try {
         await client.$transaction(async tx => {
             const run = await tx.zapRun.create({
@@ -41,4 +43,7 @@ app.post("/hooks/catch/:userId/:zapId", async(req, res) =>{
     
 });
 
-app.listen(3002);
+const PORT = process.env.PORT || 3002;
+app.listen(PORT, () => {
+    console.log(`Hooks service listening on port ${PORT}`);
+});
